@@ -21,7 +21,7 @@ Welcome to the **Async Rust Projects** repository! 🚀 This collection of proje
 ## 🚀 Getting Started
 1. Clone this repository:
    ```bash
-   git clone https://github.com/your-username/async-rust-projects.git
+   git clone https://github.com/upendra-eth/async-rust-projects.git
    ```
 2. Navigate to the project folder:
    ```bash
