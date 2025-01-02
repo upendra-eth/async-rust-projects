@@ -75,5 +75,4 @@ When scraping multiple websites, many requests are I/O-bound (waiting for a serv
 - Read URLs from a file.
 - Save responses to local files.
 - Implement retries on failure.
-```
 
