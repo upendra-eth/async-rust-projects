@@ -52,8 +52,8 @@ When scraping multiple websites, many requests are I/O-bound (waiting for a serv
 - Add the following dependencies:
   ```toml
   [dependencies]
-  tokio = { version = "1", features = ["full"] }
-  reqwest = { version = "0.11", features = ["json"] }
+  tokio = { version = "1.42", features = ["full"] }
+  reqwest = { version = "0.12.12", features = ["json"] }
   ```
 
 ## 📜 Running the Project
