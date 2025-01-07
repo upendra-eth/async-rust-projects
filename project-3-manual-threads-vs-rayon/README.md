@@ -108,3 +108,90 @@ fn main() {
 | Best For        | CPU-Bound Tasks | Fine-Grained Thread Control |
 
 **Rayon makes parallelism simple and efficient, whereas manual threads require more effort and can be inefficient for large-scale tasks.** 🚀
+
+Yes, that's exactly where the difference lies! Let's break it down step by step.
+
+---
+
+
+
+
+
+## **Key Differences Between `par_iter().for_each()` and `thread::spawn()`**
+
+### **1️⃣ Rayon (`par_iter().for_each()`)**
+```rust
+urls.par_iter().for_each(|&url| {
+    let _ = fetch_url(url);
+    let mut count = thread_counter.lock().unwrap();
+    *count += 1;
+});
+```
+✅ **What Happens Here?**
+- `par_iter()` converts the iterator into a **parallel iterator**.
+- `for_each()` applies `fetch_url(url)` **in parallel** across multiple threads **using Rayon’s thread pool**.
+- **Work-stealing** ensures that no thread remains idle.
+- No need to manually join threads.
+
+⏳ **Performance & Thread Management**
+- Rayon **automatically** distributes tasks among worker threads.
+- It uses a **fixed-size thread pool** (typically based on CPU cores).
+- **Faster execution** due to automatic **load balancing**.
+
+---
+
+### **2️⃣ Manual Threads (`thread::spawn()`)**
+```rust
+let handles: Vec<_> = urls.into_iter().map(|url| {
+    let counter = Arc::clone(&thread_counter);
+    thread::spawn(move || {
+        fetch_url(url);
+        let mut count = counter.lock().unwrap();
+        *count += 1;
+    })
+}).collect();
+
+// Wait for all threads to complete
+for handle in handles {
+    handle.join().unwrap();
+}
+```
+✅ **What Happens Here?**
+- We **manually** create a **new thread** for each URL request using `thread::spawn()`.
+- Each spawned thread runs `fetch_url(url)`, then increments the counter.
+- `join()` ensures that **all threads finish execution** before moving forward.
+
+⏳ **Performance & Thread Management**
+- Spawning **too many threads** can **increase memory usage** and cause excessive **context switching**.
+- No automatic **load balancing**—if a thread finishes early, it sits idle while others are still working.
+- **Less efficient** for large workloads because each task creates a separate OS thread.
+
+---
+
+## **Comparison Table**
+| Feature                 | Rayon (`par_iter()`) | Manual Threads (`thread::spawn()`) |
+|-------------------------|---------------------|--------------------------------|
+| **Parallel Execution**  | ✅ Yes, automatic  | ✅ Yes, but manual  |
+| **Thread Management**   | ✅ Auto-managed thread pool | ❌ Must manually spawn threads |
+| **Load Balancing**      | ✅ Work-stealing   | ❌ No auto-balancing |
+| **Scalability**         | ✅ Efficient for large tasks | ❌ Can create too many threads |
+| **Ease of Use**         | ✅ Simple API      | ❌ More complex |
+| **Waiting for Completion** | ✅ No need (done internally) | ❌ Need to `join()` manually |
+
+---
+
+## **When Should You Use Each Approach?**
+✔ **Use Rayon (`par_iter()`) when:**
+- You need **efficient, scalable** parallelism.
+- Your workload is **large** (e.g., processing thousands of items).
+- You want **simple code** with no manual thread management.
+
+❌ **Use `thread::spawn()` only when:**
+- You need **precise control** over thread creation.
+- You have **a few** tasks and don’t want a thread pool.
+- You’re building **custom thread scheduling logic**.
+
+---
+
+### **Final Verdict**
+🚀 **Rayon (`par_iter()`) is the better choice** for most cases, especially for **data-parallel** workloads. It **automates thread management, balances workload, and avoids excessive thread creation overhead**.
